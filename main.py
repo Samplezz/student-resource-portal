@@ -69,8 +69,45 @@ st.markdown("""
         color: white !important;
     }
     .download-btn {
-        color: #FF5252;
+        background-color: #FF5252;
+        color: white;
         text-decoration: none;
+        padding: 0.3rem 0.7rem;
+        border-radius: 4px;
+        display: inline-block;
+        margin-top: 0.5rem;
+        font-size: 0.9rem;
+        text-align: center;
+    }
+    .file-card {
+        background-color: #2D2D2D;
+        border-radius: 5px;
+        padding: 0.8rem;
+        margin: 0.5rem;
+        display: inline-block;
+        width: 150px;
+        vertical-align: top;
+    }
+    .file-name {
+        font-size: 0.9rem;
+        margin-top: 0.5rem;
+        margin-bottom: 0.5rem;
+        word-wrap: break-word;
+        text-align: center;
+    }
+    .file-container {
+        display: flex;
+        flex-wrap: wrap;
+    }
+    .thumbnail-container {
+        height: 100px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+    .file-icon {
+        font-size: 3rem;
+        text-align: center;
     }
     .sidebar-content {
         background-color: #2D2D2D;
@@ -154,7 +191,12 @@ def file_download_link(file_path, file_name):
         data = f.read()
     b64 = base64.b64encode(data).decode()
     file_size = os.path.getsize(file_path) / 1024  # Size in KB
-    return f'<a href="data:application/octet-stream;base64,{b64}" download="{file_name}">Download {file_name} ({file_size:.1f} KB)</a>'
+    short_name = file_name
+    if len(short_name) > 20:
+        # Truncate name if too long (for display)
+        name_parts = os.path.splitext(file_name)
+        short_name = name_parts[0][:17] + "..." + name_parts[1]
+    return f'<a href="data:application/octet-stream;base64,{b64}" download="{file_name}" class="download-btn">Download ({file_size:.1f} KB)</a>'
 
 def main():
     # Main content
@@ -231,29 +273,56 @@ def main():
             
             exams = os.listdir(exam_path) if os.path.exists(exam_path) else []
             if exams:
+                # Start file container
+                st.markdown('<div class="file-container">', unsafe_allow_html=True)
+                
                 for exam in exams:
-                    col1, col2, col3 = st.columns([1, 3, 1])
                     file_path = exam_path / exam
-                    with col1:
-                        # Generate thumbnail preview
-                        if exam.lower().endswith(('.png', '.jpg', '.jpeg', '.gif', '.bmp')):
-                            # For images, show a smaller version
-                            st.image(file_path, width=80)
-                        elif exam.lower().endswith(('.pdf')):
-                            # For PDFs, show a PDF icon
-                            st.markdown("📄", unsafe_allow_html=True)
-                        else:
-                            # For other files show a generic file icon
-                            st.markdown("📁", unsafe_allow_html=True)
+                    file_date = datetime.fromtimestamp(os.path.getmtime(file_path)).strftime('%Y-%m-%d')
                     
-                    with col2:
-                        download_link = file_download_link(file_path, exam)
-                        # Add custom class to style download link
-                        styled_link = download_link.replace('<a href', '<a class="download-btn" href')
-                        st.markdown(styled_link, unsafe_allow_html=True)
-                        
-                        # Only show file rename option for logged-in admins (in student view)
-                        if st.session_state.is_admin and st.button("Rename", key=f"rename_exam_{exam}"):
+                    # Create a file card with HTML for better layout control
+                    file_html = '<div class="file-card">'
+                    
+                    # Add thumbnail container
+                    file_html += '<div class="thumbnail-container">'
+                    if exam.lower().endswith(('.png', '.jpg', '.jpeg', '.gif', '.bmp')):
+                        # For images, convert to base64 to embed directly in HTML
+                        with open(file_path, "rb") as f:
+                            img_data = base64.b64encode(f.read()).decode()
+                        file_html += f'<img src="data:image/png;base64,{img_data}" style="max-width:100%; max-height:100px;" />'
+                    elif exam.lower().endswith(('.pdf')):
+                        # For PDFs, show a PDF icon
+                        file_html += '<div class="file-icon">📄</div>'
+                    else:
+                        # For other files show a generic file icon
+                        file_html += '<div class="file-icon">📁</div>'
+                    file_html += '</div>'
+                    
+                    # Add file name (shortened if needed)
+                    short_name = exam
+                    if len(short_name) > 20:
+                        name_parts = os.path.splitext(exam)
+                        short_name = name_parts[0][:17] + "..." + name_parts[1]
+                    file_html += f'<div class="file-name">{short_name}</div>'
+                    
+                    # Add download button
+                    download_link = file_download_link(file_path, exam)
+                    file_html += download_link
+                    
+                    # Add upload date
+                    file_html += f'<div style="font-size:0.8rem; text-align:center; margin-top:0.5rem;">Uploaded: {file_date}</div>'
+                    
+                    # Close file card
+                    file_html += '</div>'
+                    
+                    # Output the HTML
+                    st.markdown(file_html, unsafe_allow_html=True)
+                    
+                    # Add rename functionality in a separate column (only for admins)
+                    if st.session_state.is_admin:
+                        # We use an empty element with custom key to create separate UI elements for each file
+                        rename_key = f"rename_container_{exam}"
+                        if st.button("Rename", key=f"rename_exam_{exam}"):
                             st.session_state[f"rename_exam_{exam}_active"] = True
                         
                         if st.session_state.get(f"rename_exam_{exam}_active", False):
@@ -278,10 +347,9 @@ def main():
                                     if st.form_submit_button("Cancel"):
                                         st.session_state[f"rename_exam_{exam}_active"] = False
                                         st.rerun()
-                    
-                    with col3:
-                        file_date = datetime.fromtimestamp(os.path.getmtime(file_path)).strftime('%Y-%m-%d')
-                        st.caption(f"Uploaded: {file_date}")
+                
+                # End file container
+                st.markdown('</div>', unsafe_allow_html=True)
             else:
                 st.markdown("<p>No exams found for this selection.</p>", unsafe_allow_html=True)
         
@@ -292,29 +360,56 @@ def main():
             
             sheets = os.listdir(sheets_path) if os.path.exists(sheets_path) else []
             if sheets:
+                # Start file container
+                st.markdown('<div class="file-container">', unsafe_allow_html=True)
+                
                 for sheet in sheets:
-                    col1, col2, col3 = st.columns([1, 3, 1])
                     file_path = sheets_path / sheet
-                    with col1:
-                        # Generate thumbnail preview
-                        if sheet.lower().endswith(('.png', '.jpg', '.jpeg', '.gif', '.bmp')):
-                            # For images, show a smaller version
-                            st.image(file_path, width=80)
-                        elif sheet.lower().endswith(('.pdf')):
-                            # For PDFs, show a PDF icon
-                            st.markdown("📄", unsafe_allow_html=True)
-                        else:
-                            # For other files show a generic file icon
-                            st.markdown("📁", unsafe_allow_html=True)
+                    file_date = datetime.fromtimestamp(os.path.getmtime(file_path)).strftime('%Y-%m-%d')
                     
-                    with col2:
-                        download_link = file_download_link(file_path, sheet)
-                        # Add custom class to style download link
-                        styled_link = download_link.replace('<a href', '<a class="download-btn" href')
-                        st.markdown(styled_link, unsafe_allow_html=True)
-                        
-                        # Only show file rename option for logged-in admins (in student view)
-                        if st.session_state.is_admin and st.button("Rename", key=f"rename_sheet_{sheet}"):
+                    # Create a file card with HTML for better layout control
+                    file_html = '<div class="file-card">'
+                    
+                    # Add thumbnail container
+                    file_html += '<div class="thumbnail-container">'
+                    if sheet.lower().endswith(('.png', '.jpg', '.jpeg', '.gif', '.bmp')):
+                        # For images, convert to base64 to embed directly in HTML
+                        with open(file_path, "rb") as f:
+                            img_data = base64.b64encode(f.read()).decode()
+                        file_html += f'<img src="data:image/png;base64,{img_data}" style="max-width:100%; max-height:100px;" />'
+                    elif sheet.lower().endswith(('.pdf')):
+                        # For PDFs, show a PDF icon
+                        file_html += '<div class="file-icon">📄</div>'
+                    else:
+                        # For other files show a generic file icon
+                        file_html += '<div class="file-icon">📁</div>'
+                    file_html += '</div>'
+                    
+                    # Add file name (shortened if needed)
+                    short_name = sheet
+                    if len(short_name) > 20:
+                        name_parts = os.path.splitext(sheet)
+                        short_name = name_parts[0][:17] + "..." + name_parts[1]
+                    file_html += f'<div class="file-name">{short_name}</div>'
+                    
+                    # Add download button
+                    download_link = file_download_link(file_path, sheet)
+                    file_html += download_link
+                    
+                    # Add upload date
+                    file_html += f'<div style="font-size:0.8rem; text-align:center; margin-top:0.5rem;">Uploaded: {file_date}</div>'
+                    
+                    # Close file card
+                    file_html += '</div>'
+                    
+                    # Output the HTML
+                    st.markdown(file_html, unsafe_allow_html=True)
+                    
+                    # Add rename functionality in a separate column (only for admins)
+                    if st.session_state.is_admin:
+                        # We use an empty element with custom key to create separate UI elements for each file
+                        rename_key = f"rename_container_{sheet}"
+                        if st.button("Rename", key=f"rename_sheet_{sheet}"):
                             st.session_state[f"rename_sheet_{sheet}_active"] = True
                         
                         if st.session_state.get(f"rename_sheet_{sheet}_active", False):
@@ -339,10 +434,9 @@ def main():
                                     if st.form_submit_button("Cancel"):
                                         st.session_state[f"rename_sheet_{sheet}_active"] = False
                                         st.rerun()
-                    
-                    with col3:
-                        file_date = datetime.fromtimestamp(os.path.getmtime(file_path)).strftime('%Y-%m-%d')
-                        st.caption(f"Uploaded: {file_date}")
+                
+                # End file container
+                st.markdown('</div>', unsafe_allow_html=True)
             else:
                 st.markdown("<p>No study sheets found for this selection.</p>", unsafe_allow_html=True)
         
@@ -353,29 +447,56 @@ def main():
             
             tips = os.listdir(tips_path) if os.path.exists(tips_path) else []
             if tips:
+                # Start file container
+                st.markdown('<div class="file-container">', unsafe_allow_html=True)
+                
                 for tip in tips:
-                    col1, col2, col3 = st.columns([1, 3, 1])
                     file_path = tips_path / tip
-                    with col1:
-                        # Generate thumbnail preview
-                        if tip.lower().endswith(('.png', '.jpg', '.jpeg', '.gif', '.bmp')):
-                            # For images, show a smaller version
-                            st.image(file_path, width=80)
-                        elif tip.lower().endswith(('.pdf')):
-                            # For PDFs, show a PDF icon
-                            st.markdown("📄", unsafe_allow_html=True)
-                        else:
-                            # For other files show a generic file icon
-                            st.markdown("📁", unsafe_allow_html=True)
+                    file_date = datetime.fromtimestamp(os.path.getmtime(file_path)).strftime('%Y-%m-%d')
                     
-                    with col2:
-                        download_link = file_download_link(file_path, tip)
-                        # Add custom class to style download link
-                        styled_link = download_link.replace('<a href', '<a class="download-btn" href')
-                        st.markdown(styled_link, unsafe_allow_html=True)
-                        
-                        # Only show file rename option for logged-in admins (in student view)
-                        if st.session_state.is_admin and st.button("Rename", key=f"rename_tip_{tip}"):
+                    # Create a file card with HTML for better layout control
+                    file_html = '<div class="file-card">'
+                    
+                    # Add thumbnail container
+                    file_html += '<div class="thumbnail-container">'
+                    if tip.lower().endswith(('.png', '.jpg', '.jpeg', '.gif', '.bmp')):
+                        # For images, convert to base64 to embed directly in HTML
+                        with open(file_path, "rb") as f:
+                            img_data = base64.b64encode(f.read()).decode()
+                        file_html += f'<img src="data:image/png;base64,{img_data}" style="max-width:100%; max-height:100px;" />'
+                    elif tip.lower().endswith(('.pdf')):
+                        # For PDFs, show a PDF icon
+                        file_html += '<div class="file-icon">📄</div>'
+                    else:
+                        # For other files show a generic file icon
+                        file_html += '<div class="file-icon">📁</div>'
+                    file_html += '</div>'
+                    
+                    # Add file name (shortened if needed)
+                    short_name = tip
+                    if len(short_name) > 20:
+                        name_parts = os.path.splitext(tip)
+                        short_name = name_parts[0][:17] + "..." + name_parts[1]
+                    file_html += f'<div class="file-name">{short_name}</div>'
+                    
+                    # Add download button
+                    download_link = file_download_link(file_path, tip)
+                    file_html += download_link
+                    
+                    # Add upload date
+                    file_html += f'<div style="font-size:0.8rem; text-align:center; margin-top:0.5rem;">Uploaded: {file_date}</div>'
+                    
+                    # Close file card
+                    file_html += '</div>'
+                    
+                    # Output the HTML
+                    st.markdown(file_html, unsafe_allow_html=True)
+                    
+                    # Add rename functionality in a separate column (only for admins)
+                    if st.session_state.is_admin:
+                        # We use an empty element with custom key to create separate UI elements for each file
+                        rename_key = f"rename_container_{tip}"
+                        if st.button("Rename", key=f"rename_tip_{tip}"):
                             st.session_state[f"rename_tip_{tip}_active"] = True
                         
                         if st.session_state.get(f"rename_tip_{tip}_active", False):
@@ -400,10 +521,9 @@ def main():
                                     if st.form_submit_button("Cancel"):
                                         st.session_state[f"rename_tip_{tip}_active"] = False
                                         st.rerun()
-                    
-                    with col3:
-                        file_date = datetime.fromtimestamp(os.path.getmtime(file_path)).strftime('%Y-%m-%d')
-                        st.caption(f"Uploaded: {file_date}")
+                
+                # End file container
+                st.markdown('</div>', unsafe_allow_html=True)
             else:
                 st.markdown("<p>No tips or guides found for this selection.</p>", unsafe_allow_html=True)
         
