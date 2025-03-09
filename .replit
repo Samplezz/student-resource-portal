@@ -19,6 +19,10 @@ author = "agent"
 task = "workflow.run"
 args = "Streamlit Server"
 
+[[workflows.workflow.tasks]]
+task = "workflow.run"
+args = "Git Setup"
+
 [[workflows.workflow]]
 name = "Streamlit Server"
 author = "agent"
@@ -33,6 +37,20 @@ task = "packager.installForAll"
 task = "shell.exec"
 args = "streamlit run main.py"
 waitForPort = 5000
+
+[[workflows.workflow]]
+name = "Git Setup"
+author = "agent"
+
+[workflows.workflow.metadata]
+agentRequireRestartOnSave = false
+
+[[workflows.workflow.tasks]]
+task = "packager.installForAll"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = 'git init && \ngit config user.name "${GITHUB_USERNAME}" && \ngit config user.email "${GITHUB_USERNAME}@users.noreply.github.com" && \ngit add . && \ngit commit -m "Initial commit: Student Resource Portal" && \ngit branch -M main && \ngit remote add origin "https://${GITHUB_TOKEN}@github.com/${GITHUB_USERNAME}/student-resource-portal.git" && \ngit push -u origin main'
 
 [[ports]]
 localPort = 5000
