@@ -130,17 +130,18 @@ with st.sidebar:
         if st.session_state.get('show_login', False):
             with st.form("login_form"):
                 st.subheader("Admin Login")
+                admin_username = st.text_input("Username")
                 admin_password = st.text_input("Password", type="password")
                 submitted = st.form_submit_button("Login")
                 
                 if submitted:
-                    if admin_password == "admin123":  # Simple password for demo purposes
+                    if admin_username == "llouay26" and admin_password == "LouayX2006@":  # Custom admin credentials
                         st.session_state.is_admin = True
                         st.session_state.show_login = False
                         st.success("Logged in as admin!")
                         st.experimental_rerun()
                     else:
-                        st.error("Incorrect password!")
+                        st.error("Incorrect username or password!")
     else:
         with cols[1]:
             if st.button("Logout"):
