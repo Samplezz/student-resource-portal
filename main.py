@@ -179,7 +179,7 @@ def main():
     
     with col1:
         st.markdown("<p>Select University</p>", unsafe_allow_html=True)
-        selected_uni = st.selectbox("", universities, label_visibility="collapsed")
+        selected_uni = st.selectbox("University", universities, label_visibility="collapsed")
     
     # Semester selection
     semesters = settings.get("semesters", {}).get(selected_uni, [])
@@ -190,7 +190,7 @@ def main():
     
     with col2:
         st.markdown("<p>Select Semester</p>", unsafe_allow_html=True)
-        selected_semester = st.selectbox("", semesters, label_visibility="collapsed")
+        selected_semester = st.selectbox("Semester", semesters, label_visibility="collapsed")
     
     # Course selection
     courses = settings.get("courses", {}).get(f"{selected_uni}_{selected_semester}", [])
@@ -201,7 +201,7 @@ def main():
     
     with col3:
         st.markdown("<p>Select Course</p>", unsafe_allow_html=True)
-        selected_course = st.selectbox("", courses, label_visibility="collapsed")
+        selected_course = st.selectbox("Course", courses, label_visibility="collapsed")
     
     # Find Resources button
     btn_col1, btn_col2, btn_col3 = st.columns([2, 1, 2])
