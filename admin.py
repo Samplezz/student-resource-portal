@@ -278,10 +278,31 @@ def upload_resources():
 
 def show_admin_panel():
     """Display the admin panel"""
-    st.title("Admin Panel")
-    st.markdown("Welcome to the admin panel. Here you can manage universities, semesters, courses, and upload resources.")
+    st.markdown('<div class="main-header"><h1>Admin Portal</h1><p>Manage universities, semesters, courses, and upload resources</p></div>', unsafe_allow_html=True)
     
-    # Create tabs for different admin functions
+    # Add custom styling for admin panel
+    st.markdown("""
+    <style>
+        .admin-section {
+            background-color: #2D2D2D;
+            padding: 1.5rem;
+            border-radius: 5px;
+            margin-bottom: 1.5rem;
+        }
+        .admin-btn {
+            background-color: #FF5252 !important;
+            color: white !important;
+        }
+        div[data-testid="stForm"] {
+            background-color: #2D2D2D;
+            padding: 1rem;
+            border-radius: 5px;
+        }
+    </style>
+    """, unsafe_allow_html=True)
+    
+    # Create tabs for different admin functions with custom styling
+    st.markdown('<div class="admin-section">', unsafe_allow_html=True)
     tab1, tab2, tab3, tab4 = st.tabs(["Universities", "Semesters", "Courses", "Upload Resources"])
     
     with tab1:
@@ -295,3 +316,5 @@ def show_admin_panel():
     
     with tab4:
         upload_resources()
+        
+    st.markdown('</div>', unsafe_allow_html=True)
