@@ -29,7 +29,7 @@ def manage_universities():
                     settings["semesters"].pop(uni, None)
                 universities.remove(uni)
                 save_settings(settings)
-                st.experimental_rerun()
+                st.rerun()
     
     # Add new university
     st.write("Add New University:")
@@ -43,7 +43,7 @@ def manage_universities():
             settings["semesters"][new_uni] = []
             save_settings(settings)
             st.success(f"Added {new_uni} to universities!")
-            st.experimental_rerun()
+            st.rerun()
         elif new_uni in universities:
             st.error(f"{new_uni} already exists!")
         else:
@@ -85,7 +85,7 @@ def manage_semesters():
                         settings["courses"].pop(key, None)
                     semesters.remove(semester)
                     save_settings(settings)
-                    st.experimental_rerun()
+                    st.rerun()
         
         # Add new semester
         st.write(f"Add New Semester for {selected_uni}:")
@@ -96,7 +96,7 @@ def manage_semesters():
                 settings["semesters"][selected_uni] = semesters
                 save_settings(settings)
                 st.success(f"Added {new_semester} to {selected_uni} semesters!")
-                st.experimental_rerun()
+                st.rerun()
             elif new_semester in semesters:
                 st.error(f"{new_semester} already exists for {selected_uni}!")
             else:
@@ -154,7 +154,7 @@ def manage_courses():
                             shutil.rmtree(course_path)
                         courses.remove(course)
                         save_settings(settings)
-                        st.experimental_rerun()
+                        st.rerun()
             
             # Add new course
             st.write(f"Add New Course for {selected_uni}, {selected_semester}:")
@@ -173,7 +173,7 @@ def manage_courses():
                     create_directory_if_not_exists(course_path / "tips")
                     
                     st.success(f"Added {new_course} to {selected_uni}, {selected_semester} courses!")
-                    st.experimental_rerun()
+                    st.rerun()
                 elif new_course in courses:
                     st.error(f"{new_course} already exists for {selected_uni}, {selected_semester}!")
                 else:

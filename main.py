@@ -139,14 +139,14 @@ with st.sidebar:
                         st.session_state.is_admin = True
                         st.session_state.show_login = False
                         st.success("Logged in as admin!")
-                        st.experimental_rerun()
+                        st.rerun()
                     else:
                         st.error("Incorrect username or password!")
     else:
         with cols[1]:
             if st.button("Logout"):
                 st.session_state.is_admin = False
-                st.experimental_rerun()
+                st.rerun()
 
 def file_download_link(file_path, file_name):
     """Generate a download link for a file"""
