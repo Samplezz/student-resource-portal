@@ -232,15 +232,55 @@ def main():
             exams = os.listdir(exam_path) if os.path.exists(exam_path) else []
             if exams:
                 for exam in exams:
-                    col1, col2 = st.columns([4, 1])
+                    col1, col2, col3 = st.columns([1, 3, 1])
+                    file_path = exam_path / exam
                     with col1:
-                        file_path = exam_path / exam
+                        # Generate thumbnail preview
+                        if exam.lower().endswith(('.png', '.jpg', '.jpeg', '.gif', '.bmp')):
+                            # For images, show a smaller version
+                            st.image(file_path, width=80)
+                        elif exam.lower().endswith(('.pdf')):
+                            # For PDFs, show a PDF icon
+                            st.markdown("📄", unsafe_allow_html=True)
+                        else:
+                            # For other files show a generic file icon
+                            st.markdown("📁", unsafe_allow_html=True)
+                    
+                    with col2:
                         download_link = file_download_link(file_path, exam)
                         # Add custom class to style download link
                         styled_link = download_link.replace('<a href', '<a class="download-btn" href')
                         st.markdown(styled_link, unsafe_allow_html=True)
-                    with col2:
-                        file_date = datetime.fromtimestamp(os.path.getmtime(exam_path / exam)).strftime('%Y-%m-%d')
+                        
+                        # Only show file rename option for logged-in admins (in student view)
+                        if st.session_state.is_admin and st.button("Rename", key=f"rename_exam_{exam}"):
+                            st.session_state[f"rename_exam_{exam}_active"] = True
+                        
+                        if st.session_state.get(f"rename_exam_{exam}_active", False):
+                            with st.form(key=f"rename_form_exam_{exam}"):
+                                new_name = st.text_input("New filename:", value=exam)
+                                col_a, col_b = st.columns(2)
+                                with col_a:
+                                    if st.form_submit_button("Save"):
+                                        if new_name != exam:
+                                            # Get file extension
+                                            _, file_extension = os.path.splitext(exam)
+                                            if not new_name.endswith(file_extension):
+                                                new_name += file_extension
+                                            
+                                            # Rename the file
+                                            new_file_path = exam_path / new_name
+                                            os.rename(file_path, new_file_path)
+                                            st.success(f"Renamed to {new_name}")
+                                            st.session_state[f"rename_exam_{exam}_active"] = False
+                                            st.rerun()
+                                with col_b:
+                                    if st.form_submit_button("Cancel"):
+                                        st.session_state[f"rename_exam_{exam}_active"] = False
+                                        st.rerun()
+                    
+                    with col3:
+                        file_date = datetime.fromtimestamp(os.path.getmtime(file_path)).strftime('%Y-%m-%d')
                         st.caption(f"Uploaded: {file_date}")
             else:
                 st.markdown("<p>No exams found for this selection.</p>", unsafe_allow_html=True)
@@ -253,15 +293,55 @@ def main():
             sheets = os.listdir(sheets_path) if os.path.exists(sheets_path) else []
             if sheets:
                 for sheet in sheets:
-                    col1, col2 = st.columns([4, 1])
+                    col1, col2, col3 = st.columns([1, 3, 1])
+                    file_path = sheets_path / sheet
                     with col1:
-                        file_path = sheets_path / sheet
+                        # Generate thumbnail preview
+                        if sheet.lower().endswith(('.png', '.jpg', '.jpeg', '.gif', '.bmp')):
+                            # For images, show a smaller version
+                            st.image(file_path, width=80)
+                        elif sheet.lower().endswith(('.pdf')):
+                            # For PDFs, show a PDF icon
+                            st.markdown("📄", unsafe_allow_html=True)
+                        else:
+                            # For other files show a generic file icon
+                            st.markdown("📁", unsafe_allow_html=True)
+                    
+                    with col2:
                         download_link = file_download_link(file_path, sheet)
                         # Add custom class to style download link
                         styled_link = download_link.replace('<a href', '<a class="download-btn" href')
                         st.markdown(styled_link, unsafe_allow_html=True)
-                    with col2:
-                        file_date = datetime.fromtimestamp(os.path.getmtime(sheets_path / sheet)).strftime('%Y-%m-%d')
+                        
+                        # Only show file rename option for logged-in admins (in student view)
+                        if st.session_state.is_admin and st.button("Rename", key=f"rename_sheet_{sheet}"):
+                            st.session_state[f"rename_sheet_{sheet}_active"] = True
+                        
+                        if st.session_state.get(f"rename_sheet_{sheet}_active", False):
+                            with st.form(key=f"rename_form_sheet_{sheet}"):
+                                new_name = st.text_input("New filename:", value=sheet)
+                                col_a, col_b = st.columns(2)
+                                with col_a:
+                                    if st.form_submit_button("Save"):
+                                        if new_name != sheet:
+                                            # Get file extension
+                                            _, file_extension = os.path.splitext(sheet)
+                                            if not new_name.endswith(file_extension):
+                                                new_name += file_extension
+                                            
+                                            # Rename the file
+                                            new_file_path = sheets_path / new_name
+                                            os.rename(file_path, new_file_path)
+                                            st.success(f"Renamed to {new_name}")
+                                            st.session_state[f"rename_sheet_{sheet}_active"] = False
+                                            st.rerun()
+                                with col_b:
+                                    if st.form_submit_button("Cancel"):
+                                        st.session_state[f"rename_sheet_{sheet}_active"] = False
+                                        st.rerun()
+                    
+                    with col3:
+                        file_date = datetime.fromtimestamp(os.path.getmtime(file_path)).strftime('%Y-%m-%d')
                         st.caption(f"Uploaded: {file_date}")
             else:
                 st.markdown("<p>No study sheets found for this selection.</p>", unsafe_allow_html=True)
@@ -274,15 +354,55 @@ def main():
             tips = os.listdir(tips_path) if os.path.exists(tips_path) else []
             if tips:
                 for tip in tips:
-                    col1, col2 = st.columns([4, 1])
+                    col1, col2, col3 = st.columns([1, 3, 1])
+                    file_path = tips_path / tip
                     with col1:
-                        file_path = tips_path / tip
+                        # Generate thumbnail preview
+                        if tip.lower().endswith(('.png', '.jpg', '.jpeg', '.gif', '.bmp')):
+                            # For images, show a smaller version
+                            st.image(file_path, width=80)
+                        elif tip.lower().endswith(('.pdf')):
+                            # For PDFs, show a PDF icon
+                            st.markdown("📄", unsafe_allow_html=True)
+                        else:
+                            # For other files show a generic file icon
+                            st.markdown("📁", unsafe_allow_html=True)
+                    
+                    with col2:
                         download_link = file_download_link(file_path, tip)
                         # Add custom class to style download link
                         styled_link = download_link.replace('<a href', '<a class="download-btn" href')
                         st.markdown(styled_link, unsafe_allow_html=True)
-                    with col2:
-                        file_date = datetime.fromtimestamp(os.path.getmtime(tips_path / tip)).strftime('%Y-%m-%d')
+                        
+                        # Only show file rename option for logged-in admins (in student view)
+                        if st.session_state.is_admin and st.button("Rename", key=f"rename_tip_{tip}"):
+                            st.session_state[f"rename_tip_{tip}_active"] = True
+                        
+                        if st.session_state.get(f"rename_tip_{tip}_active", False):
+                            with st.form(key=f"rename_form_tip_{tip}"):
+                                new_name = st.text_input("New filename:", value=tip)
+                                col_a, col_b = st.columns(2)
+                                with col_a:
+                                    if st.form_submit_button("Save"):
+                                        if new_name != tip:
+                                            # Get file extension
+                                            _, file_extension = os.path.splitext(tip)
+                                            if not new_name.endswith(file_extension):
+                                                new_name += file_extension
+                                            
+                                            # Rename the file
+                                            new_file_path = tips_path / new_name
+                                            os.rename(file_path, new_file_path)
+                                            st.success(f"Renamed to {new_name}")
+                                            st.session_state[f"rename_tip_{tip}_active"] = False
+                                            st.rerun()
+                                with col_b:
+                                    if st.form_submit_button("Cancel"):
+                                        st.session_state[f"rename_tip_{tip}_active"] = False
+                                        st.rerun()
+                    
+                    with col3:
+                        file_date = datetime.fromtimestamp(os.path.getmtime(file_path)).strftime('%Y-%m-%d')
                         st.caption(f"Uploaded: {file_date}")
             else:
                 st.markdown("<p>No tips or guides found for this selection.</p>", unsafe_allow_html=True)
