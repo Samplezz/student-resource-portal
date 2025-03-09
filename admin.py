@@ -258,7 +258,7 @@ def upload_resources():
                                 if os.path.exists(file_path):
                                     os.remove(file_path)
                                     st.success(f"Deleted {file}!")
-                                    st.experimental_rerun()
+                                    st.rerun()
                 else:
                     st.info(f"No {resource_type.lower()} uploaded yet.")
                 
@@ -274,7 +274,7 @@ def upload_resources():
                         f.write(uploaded_file.getbuffer())
                     
                     st.success(f"File {uploaded_file.name} uploaded successfully!")
-                    st.experimental_rerun()
+                    st.rerun()
 
 def show_admin_panel():
     """Display the admin panel"""
