@@ -1,5 +1,6 @@
 {pkgs}: {
   deps = [
+    pkgs.gitleaks
     pkgs.zlib
     pkgs.tk
     pkgs.tcl
